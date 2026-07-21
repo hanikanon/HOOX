@@ -17,6 +17,7 @@ import { CallProvider } from "../hooks/use-call";
 import { CallOverlay } from "../components/call/CallOverlay";
 import { WelcomeScreen } from "../components/auth/WelcomeScreen";
 import { OtpScreen } from "../components/auth/OtpScreen";
+import { PermissionsScreen } from "../components/auth/PermissionsScreen";
 
 function NotFoundComponent() {
   return (
@@ -154,7 +155,7 @@ function RootComponent() {
   // that accepts any 6 digits, then unlocks the real app. Remembered per
   // device via localStorage so it's a one-time thing, not on every launch.
   const AUTH_KEY = "cryptvora_mock_verified";
-  const [authStage, setAuthStage] = useState<"welcome" | "otp" | "app">(() => {
+  const [authStage, setAuthStage] = useState<"welcome" | "otp" | "permissions" | "app">(() => {
     if (typeof window === "undefined") return "welcome";
     return window.localStorage.getItem(AUTH_KEY) === "1" ? "app" : "welcome";
   });
@@ -168,12 +169,17 @@ function RootComponent() {
           <AnimatePresence mode="wait" initial={false}>
             {authStage === "welcome" ? (
               <WelcomeScreen key="welcome" onContinue={() => setAuthStage("otp")} />
-            ) : (
+            ) : authStage === "otp" ? (
               <OtpScreen
                 key="otp"
                 email={MOCK_EMAIL}
                 onBack={() => setAuthStage("welcome")}
-                onVerified={() => {
+                onVerified={() => setAuthStage("permissions")}
+              />
+            ) : (
+              <PermissionsScreen
+                key="permissions"
+                onContinue={() => {
                   window.localStorage.setItem(AUTH_KEY, "1");
                   setAuthStage("app");
                 }}
