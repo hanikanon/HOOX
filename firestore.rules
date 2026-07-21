@@ -1,0 +1,35 @@
+rules_version = '2';
+
+// Security model note: this app has no full account system — a "call
+// code" is a bearer secret, the same way it already is for starting a
+// voice/video call. These rules require at least an (anonymous) signed-in
+// session, validate the shape of every message, and check the sender code
+// is actually one of the two codes that make up the conversation id. They
+// do NOT cryptographically prove a given device owns a given call code
+// (there's no login system for that yet) — someone who already knows both
+// call codes for a conversation could still read/write it. That mirrors
+// the existing calling feature's security model (see chat history).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow read: if request.auth != null
+        && conversationId.matches('^[A-Z2-9]{6}_[A-Z2-9]{6}$');
+
+      allow create: if request.auth != null
+        && conversationId.matches('^[A-Z2-9]{6}_[A-Z2-9]{6}$')
+        && request.resource.data.keys().hasOnly(['text', 'senderCode', 'createdAt'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 4000
+        && request.resource.data.senderCode is string
+        && (
+          request.resource.data.senderCode == conversationId[0:6]
+          || request.resource.data.senderCode == conversationId[7:13]
+        )
+        && request.resource.data.createdAt == request.time;
+
+      // Messages are immutable once sent — no edits, no deletes.
+      allow update, delete: if false;
+    }
+  }
+}

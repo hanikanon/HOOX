@@ -1,0 +1,648 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Cryptvora — premium community platform for traders.
+ *
+ * Neutral first, purple as a controlled accent. Rich near-black canvas with a
+ * subtle warm undertone, layered surfaces for elevation, and a matching
+ * editorial light theme. Motion, typography, radii, shadows, story ring and
+ * badge palette are all defined here — components never hard-code colors.
+ */
+
+@theme inline {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-glow: var(--primary-glow);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-bubble-in: var(--bubble-in);
+  --color-bubble-out: var(--bubble-out);
+  --color-bubble-out-foreground: var(--bubble-out-foreground);
+  --color-online: var(--online);
+  --color-surface-elevated: var(--surface-elevated);
+
+  --font-display: "Inter", "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-glow: 0 18px 48px -22px color-mix(in oklab, var(--primary) 45%, transparent);
+  --shadow-elevate: 0 12px 40px -18px oklch(0 0 0 / 0.55);
+  --shadow-soft: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 8px 24px -16px oklch(0 0 0 / 0.5);
+}
+
+/* -------------------- Dark (default) ---------------------- */
+:root,
+.dark {
+  --background: oklch(0.11 0.006 280);
+  --foreground: oklch(0.98 0.003 90);
+
+  --surface: oklch(0.145 0.007 280);
+  --surface-2: oklch(0.18 0.008 280);
+  --surface-3: oklch(0.22 0.009 280);
+
+  --card: oklch(0.145 0.007 280);
+  --card-foreground: oklch(0.98 0.003 90);
+  --popover: oklch(0.16 0.008 280);
+  --popover-foreground: oklch(0.98 0.003 90);
+
+  --primary: oklch(0.7 0.18 300);
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-soft: oklch(0.7 0.18 300 / 0.12);
+  --primary-glow: oklch(0.82 0.14 300);
+
+  --secondary: oklch(0.2 0.008 280);
+  --secondary-foreground: oklch(0.97 0 0);
+
+  --muted: oklch(0.18 0.007 280);
+  --muted-foreground: oklch(0.66 0.012 280);
+
+  --accent: oklch(0.22 0.01 280);
+  --accent-foreground: oklch(0.98 0 0);
+
+  --destructive: oklch(0.66 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --success: oklch(0.72 0.17 155);
+
+  --border: oklch(1 0 0 / 0.07);
+  --border-strong: oklch(1 0 0 / 0.14);
+  --input: oklch(1 0 0 / 0.06);
+  --ring: oklch(0.7 0.18 300 / 0.5);
+
+  --sidebar: oklch(0.09 0.005 280);
+  --sidebar-foreground: oklch(0.92 0 0);
+  --sidebar-primary: oklch(0.7 0.18 300);
+  --sidebar-primary-foreground: oklch(0.14 0.01 280);
+  --sidebar-accent: oklch(0.17 0.008 280);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.06);
+  --sidebar-ring: oklch(0.7 0.18 300 / 0.5);
+
+  --radius: 16px;
+
+  --gradient-brand:
+    linear-gradient(135deg, oklch(0.78 0.15 300) 0%, oklch(0.72 0.16 330) 45%, oklch(0.74 0.13 250) 100%);
+  --gradient-story:
+    conic-gradient(from 140deg, #34d399 0%, #86efac 30%, #bbf7d0 55%, #4ade80 78%, #34d399 100%);
+
+  --wallpaper:
+    radial-gradient(1200px 700px at 12% -10%, oklch(0.3 0.09 300 / 0.18), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, oklch(0.3 0.05 250 / 0.14), transparent 55%),
+    radial-gradient(700px 500px at 50% 120%, oklch(0.28 0.06 320 / 0.12), transparent 60%);
+
+  --surface-elevated: oklch(0.2 0.009 280);
+  --bubble-in: var(--surface-2);
+  --bubble-out: var(--primary);
+  --bubble-out-foreground: var(--primary-foreground);
+  --online: var(--success);
+
+  color-scheme: dark;
+}
+
+/* -------------------- Light theme ------------------------- */
+.light,
+:root.light {
+  --background: oklch(0.985 0.003 90);
+  --foreground: oklch(0.19 0.01 280);
+
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.975 0.004 90);
+  --surface-3: oklch(0.955 0.006 90);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.01 280);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.01 280);
+
+  --primary: oklch(0.5 0.19 300);
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-soft: oklch(0.5 0.19 300 / 0.1);
+  --primary-glow: oklch(0.62 0.19 300);
+
+  --secondary: oklch(0.96 0.005 90);
+  --secondary-foreground: oklch(0.2 0.01 280);
+
+  --muted: oklch(0.955 0.005 90);
+  --muted-foreground: oklch(0.5 0.012 280);
+
+  --accent: oklch(0.95 0.007 300);
+  --accent-foreground: oklch(0.2 0.01 280);
+
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.6 0.17 155);
+
+  --border: oklch(0.2 0.01 280 / 0.08);
+  --border-strong: oklch(0.2 0.01 280 / 0.16);
+  --input: oklch(0.2 0.01 280 / 0.08);
+  --ring: oklch(0.5 0.19 300 / 0.4);
+
+  --sidebar: oklch(0.98 0.004 90);
+  --sidebar-foreground: oklch(0.19 0.01 280);
+  --sidebar-primary: oklch(0.5 0.19 300);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.955 0.005 90);
+  --sidebar-accent-foreground: oklch(0.2 0.01 280);
+  --sidebar-border: oklch(0.2 0.01 280 / 0.08);
+  --sidebar-ring: oklch(0.5 0.19 300 / 0.4);
+
+  --gradient-brand:
+    linear-gradient(135deg, oklch(0.62 0.19 300) 0%, oklch(0.6 0.18 330) 45%, oklch(0.65 0.14 250) 100%);
+  --gradient-story:
+    conic-gradient(from 140deg, #22c55e 0%, #4ade80 30%, #86efac 55%, #16a34a 78%, #22c55e 100%);
+
+  --wallpaper:
+    radial-gradient(1000px 600px at 10% -10%, oklch(0.85 0.09 300 / 0.35), transparent 60%),
+    radial-gradient(800px 500px at 100% 10%, oklch(0.88 0.07 250 / 0.3), transparent 55%);
+
+  --surface-elevated: oklch(0.96 0.005 90);
+  --bubble-in: var(--surface-2);
+  --bubble-out: var(--primary);
+  --bubble-out-foreground: var(--primary-foreground);
+  --online: var(--success);
+
+  color-scheme: light;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Global tap/press feedback. Settings screens already felt "alive" because
+   * every control there uses framer-motion's whileTap. Everywhere else was
+   * relying only on a background-color flash (active:bg-white/[...]), which
+   * reads as a hover state, not a press. This gives every button, link, and
+   * role="button" element in the app the same quick, snappy scale-down on
+   * press + eased release that Settings has — no per-component JS needed. */
+  button:not(:disabled),
+  a,
+  [role="button"],
+  .tap-scale {
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  button:not(:disabled):active,
+  a:active,
+  [role="button"]:active,
+  .tap-scale:active {
+    transform: scale(0.96);
+    transition-duration: 0.08s;
+  }
+
+  body {
+    background-image: var(--wallpaper);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    overscroll-behavior-y: none;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+    color: var(--foreground);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--foreground) 12%, transparent);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--foreground) 22%, transparent);
+  }
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--background) 72%, transparent);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--border);
+}
+
+@utility glass-strong {
+  background: color-mix(in oklab, var(--background) 86%, transparent);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--border);
+}
+
+/* Cryptvora surface backdrop, used behind the redesigned conversation screen */
+@utility bg-cryptvora {
+  background:
+    radial-gradient(1200px 600px at 20% -10%, oklch(0.28 0.09 300 / 0.35), transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, oklch(0.3 0.1 320 / 0.3), transparent 55%),
+    linear-gradient(180deg, oklch(0.13 0.02 285), oklch(0.11 0.02 285));
+}
+
+@utility bg-bubble-gradient {
+  background: linear-gradient(
+    140deg,
+    color-mix(in oklab, var(--primary) 92%, black 8%),
+    color-mix(in oklab, var(--primary-glow) 88%, black 6%)
+  );
+}
+
+/* soft press, used by the redesigned conversation screen's buttons */
+@utility tap {
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 160ms ease;
+}
+@utility tap-active {
+  transform: scale(0.94);
+}
+
+@utility scroll-fade {
+  scrollbar-width: none;
+}
+.scroll-fade::-webkit-scrollbar {
+  display: none;
+}
+
+/* GPU hints for smooth 60fps scroll & animation */
+@utility gpu {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Floating curved pill container used by the redesigned conversation header */
+@utility pill-bar {
+  border-radius: 24px;
+  background: color-mix(in oklab, var(--surface-elevated) 62%, transparent);
+  backdrop-filter: saturate(160%) blur(28px);
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, white 6%, transparent) inset,
+    0 -1px 0 0 color-mix(in oklab, black 30%, transparent) inset,
+    0 14px 34px -22px color-mix(in oklab, black 70%, transparent);
+  border: 1px solid color-mix(in oklab, white 5%, transparent);
+}
+
+@keyframes online-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--online) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--online) 0%, transparent);
+  }
+}
+@utility online-dot {
+  background: var(--online);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--online) 55%, transparent);
+  animation: online-pulse 2.4s ease-out infinite;
+}
+
+@keyframes reaction-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@utility animate-reaction-pop {
+  animation: reaction-pop 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@utility ring-brand {
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--primary) 28%, transparent),
+    0 8px 32px -12px color-mix(in oklab, var(--primary) 40%, transparent);
+}
+
+@utility text-gradient {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility story-ring {
+  background: var(--gradient-story);
+}
+
+@utility story-ring-viewed {
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--foreground) 14%, transparent),
+    color-mix(in oklab, var(--foreground) 6%, transparent));
+}
+
+/* -------------------- Buttons ----------------------------- */
+@utility btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  border-radius: 14px;
+  padding: 0.625rem 1rem;
+  font-size: 13.5px;
+  line-height: 1;
+  transition:
+    transform 180ms cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 180ms ease,
+    box-shadow 220ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
+  will-change: transform;
+}
+@utility btn-primary {
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--primary) 100%, transparent),
+    color-mix(in oklab, var(--primary) 88%, black));
+  color: var(--primary-foreground);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, white 22%, transparent) inset,
+    0 -1px 0 color-mix(in oklab, black 24%, transparent) inset,
+    0 10px 30px -14px color-mix(in oklab, var(--primary) 65%, transparent);
+  &:hover { filter: brightness(1.05); }
+  &:active { transform: scale(0.97); filter: brightness(0.96); }
+  &:disabled { opacity: 0.5; filter: grayscale(0.2); }
+}
+@utility btn-secondary {
+  background: color-mix(in oklab, var(--foreground) 5%, transparent);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 0 color-mix(in oklab, white 3%, transparent) inset;
+  &:hover { background: color-mix(in oklab, var(--foreground) 8%, transparent); }
+  &:active { transform: scale(0.97); }
+}
+@utility btn-ghost {
+  color: var(--muted-foreground);
+  &:hover { background: color-mix(in oklab, var(--foreground) 5%, transparent); color: var(--foreground); }
+  &:active { transform: scale(0.97); }
+}
+@utility btn-danger {
+  background: linear-gradient(180deg, var(--destructive),
+    color-mix(in oklab, var(--destructive) 82%, black));
+  color: var(--destructive-foreground);
+  box-shadow: 0 10px 26px -14px color-mix(in oklab, var(--destructive) 65%, transparent);
+  &:hover { filter: brightness(1.05); }
+  &:active { transform: scale(0.97); }
+}
+@utility press {
+  transition: transform 160ms cubic-bezier(0.32, 0.72, 0, 1);
+  &:active { transform: scale(0.96); }
+}
+
+/* -------------------- Page transitions -------------------- */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+@keyframes story-ring-spin {
+  to { transform: rotate(360deg); }
+}
+@utility animate-page-enter {
+  animation: page-enter 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes page-enter-from-right {
+  from { opacity: 0; transform: translateX(38px) scale(0.985); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes page-enter-from-left {
+  from { opacity: 0; transform: translateX(-38px) scale(0.985); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@utility animate-page-enter-from-right {
+  animation: page-enter-from-right 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility animate-page-enter-from-left {
+  animation: page-enter-from-left 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@utility nav-elevate {
+  box-shadow: 0 -12px 34px -18px oklch(0 0 0 / 0.6);
+}
+@utility skeleton {
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--foreground) 4%, transparent) 0%,
+    color-mix(in oklab, var(--foreground) 10%, transparent) 40%,
+    color-mix(in oklab, var(--foreground) 4%, transparent) 80%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: 12px;
+}
+@utility nav-hide {
+  transform: translateY(calc(100% + env(safe-area-inset-bottom, 0px)));
+}
+
+@utility surface-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* -------------------- Badge palette ----------------------- */
+@utility badge-official {
+  background: linear-gradient(135deg, #4f8bff, #2e6bd6);
+  color: #fff;
+}
+@utility badge-verified {
+  background: linear-gradient(135deg, #7a4dff, #a06bff);
+  color: #fff;
+}
+@utility badge-premium {
+  background: linear-gradient(135deg, #f5c14a, #d99425);
+  color: #1a1200;
+}
+@utility badge-premium-verified {
+  background: linear-gradient(135deg, #f5c14a 0%, #a06bff 100%);
+  color: #fff;
+}
+@utility badge-creator {
+  background: linear-gradient(135deg, #ff7ac6, #b95ce0);
+  color: #fff;
+}
+@utility badge-educator {
+  background: linear-gradient(135deg, #4dd0c1, #2a9d90);
+  color: #04201c;
+}
+@utility badge-trader {
+  background: linear-gradient(135deg, #46d17a, #1f9c56);
+  color: #04220f;
+}
+@utility badge-analyst {
+  background: linear-gradient(135deg, #7ad0ff, #3f8fd6);
+  color: #041424;
+}
+@utility badge-mentor {
+  background: linear-gradient(135deg, #ffb37a, #d97a3a);
+  color: #241004;
+}
+@utility badge-leader {
+  background: linear-gradient(135deg, #b95ce0, #6a3ad1);
+  color: #fff;
+}
+@utility badge-contributor {
+  background: linear-gradient(135deg, #a0a8bd, #6b7488);
+  color: #fff;
+}
+@utility badge-developer {
+  background: linear-gradient(135deg, #6b7280, #1f2937);
+  color: #fff;
+}
+@utility badge-partner {
+  background: linear-gradient(135deg, #6ba0ff, #3a5ad1);
+  color: #fff;
+}
+@utility badge-ambassador {
+  background: linear-gradient(135deg, #ff5ea8, #b83a8a);
+  color: #fff;
+}
+@utility badge-elite {
+  background: linear-gradient(135deg, #e6e6f0, #9aa0b6);
+  color: #1a1a24;
+}
+@utility badge-legendary {
+  background: conic-gradient(from 140deg, #ffb84d, #ff5ea8, #7a4dff, #3fb0ff, #ffb84d);
+  color: #fff;
+}
+@utility badge-founding {
+  background: linear-gradient(135deg, #f5c14a, #b95ce0);
+  color: #1a1200;
+}
+
+/* -------------------- Motion ------------------------------ */
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.85); }
+}
+
+@keyframes badge-shine {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-2px); opacity: 1; }
+}
+
+@keyframes ring-spin {
+  to { transform: rotate(360deg); }
+}
+
+@utility animate-bubble-in {
+  animation: bubble-in 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@utility animate-pulse-dot {
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+
+@utility animate-badge-shine {
+  background-size: 200% 100%;
+  animation: badge-shine 3.2s linear infinite;
+}
+
+@utility animate-typing-dot {
+  animation: typing-dot 1.1s ease-in-out infinite;
+}
+
+@utility animate-ring-spin {
+  animation: ring-spin 8s linear infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 22px 4px color-mix(in oklab, var(--primary) 40%, transparent),
+      0 14px 32px -10px color-mix(in oklab, var(--primary) 55%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 34px 8px color-mix(in oklab, var(--primary) 55%, transparent),
+      0 14px 32px -10px color-mix(in oklab, var(--primary) 65%, transparent);
+  }
+}
+@utility glow-pulse {
+  animation: glow-pulse 2.6s ease-in-out infinite;
+}
