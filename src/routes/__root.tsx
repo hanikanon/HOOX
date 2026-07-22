@@ -57,6 +57,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-muted-foreground">
           The night is long. Try again or head back to your chats.
         </p>
+        {/* Temporary — shows the real error text so it can be screenshotted
+         * and diagnosed, instead of only ever seeing this generic message. */}
+        <p className="mt-3 break-words rounded-lg bg-white/5 p-3 text-left text-[11px] text-muted-foreground/80">
+          {error?.message || String(error)}
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
