@@ -22,6 +22,16 @@ const ONESIGNAL_APP_ID = "33aa8a5b-1731-4623-8a77-8ad91836f221";
 const ONESIGNAL_REST_API_KEY = import.meta.env.VITE_ONESIGNAL_REST_API_KEY as string | undefined;
 
 let initStarted = false;
+let lastDebugInfo = "";
+
+/** Temporary diagnostic helper — lets the UI show exactly what happened
+ * (or went wrong) the last time initOneSignal ran, since native plugin
+ * failures on a real device are otherwise invisible with no way to check
+ * logs remotely. Safe to keep around; just returns an empty string once
+ * everything is confirmed working. */
+export function getOneSignalDebugInfo(): string {
+  return lastDebugInfo;
+}
 
 /** Boots the OneSignal SDK and registers this device under its own call
  * code (the same code shown on the Call screen), so other devices can push
@@ -30,16 +40,27 @@ let initStarted = false;
  * work the first time. No-ops outside a native app, since OneSignal's SDK
  * needs the real Android/iOS runtime, not a plain browser tab. */
 export async function initOneSignal(): Promise<void> {
-  if (initStarted || !Capacitor.isNativePlatform()) return;
+  if (initStarted) return;
+  if (!Capacitor.isNativePlatform()) {
+    lastDebugInfo = "Skipped: not running as a native app (plain browser tab).";
+    return;
+  }
   initStarted = true;
   try {
+    lastDebugInfo = "Step 1: calling OneSignal.initialize()…";
     await OneSignal.initialize({ appId: ONESIGNAL_APP_ID });
-    await OneSignal.Notifications.requestPermission(true);
+    lastDebugInfo = "Step 2: calling OneSignal.Notifications.requestPermission()…";
+    const accepted = await OneSignal.Notifications.requestPermission(true);
+    lastDebugInfo = `Step 3: calling OneSignal.login() (permission accepted: ${accepted})…`;
     await OneSignal.login(getOrCreateDeviceCode());
-  } catch {
+    lastDebugInfo = `OK — logged in as ${getOrCreateDeviceCode()}, permission accepted: ${accepted}`;
+  } catch (err) {
     // Push notifications are a nice-to-have on top of the app, not
-    // something that should ever block someone from using the app itself.
+    // something that should ever block someone from using the app itself
+    // — but we keep the actual error around so it can be shown on screen
+    // instead of vanishing silently.
     initStarted = false;
+    lastDebugInfo = `FAILED at "${lastDebugInfo}" — ${err instanceof Error ? err.message : String(err)}`;
   }
 }
 
