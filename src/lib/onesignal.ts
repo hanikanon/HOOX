@@ -48,7 +48,7 @@ export async function initOneSignal(): Promise<void> {
   initStarted = true;
   try {
     lastDebugInfo = "Step 1: calling OneSignal.initialize()…";
-    await OneSignal.initialize({ appId: ONESIGNAL_APP_ID });
+    await OneSignal.initialize(ONESIGNAL_APP_ID);
     lastDebugInfo = "Step 2: calling OneSignal.Notifications.requestPermission()…";
     const accepted = await OneSignal.Notifications.requestPermission(true);
     lastDebugInfo = `Step 3: calling OneSignal.login() (permission accepted: ${accepted})…`;
