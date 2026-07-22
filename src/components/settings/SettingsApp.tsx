@@ -84,18 +84,6 @@ function SettingsShell() {
   const s = useSettings();
   const speed = s.motion === "fast" ? 0.14 : s.motion === "reduced" ? 0 : 0.24;
   const style = themeStyle(s.theme, s.accent, s.radius, s.fontSize, s.blur);
-  // Temporary diagnostics for the push-notification setup — shows exactly
-  // what happened (or failed) the last time OneSignal tried to register
-  // this device, since that failure is otherwise invisible on a real
-  // phone with no way to check logs remotely.
-  const [pushDebug, setPushDebug] = useState(getOneSignalDebugInfo());
-  const retryPushSetup = async () => {
-    setPushDebug("Retrying…");
-    await initOneSignal();
-    const info = getOneSignalDebugInfo();
-    setPushDebug(info);
-    window.alert(info); // full text — the settings row below truncates long messages
-  };
 
   return (
     <div style={style} className="min-h-svh w-full">
@@ -116,6 +104,18 @@ function SettingsRoutes({ speed }: { speed: number }) {
   const [section, setSection] = useState<SectionId>("root");
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [query, setQuery] = useState("");
+  // Temporary diagnostics for the push-notification setup — shows exactly
+  // what happened (or failed) the last time OneSignal tried to register
+  // this device, since that failure is otherwise invisible on a real
+  // phone with no way to check logs remotely.
+  const [pushDebug, setPushDebug] = useState(getOneSignalDebugInfo());
+  const retryPushSetup = async () => {
+    setPushDebug("Retrying…");
+    await initOneSignal();
+    const info = getOneSignalDebugInfo();
+    setPushDebug(info);
+    window.alert(info); // full text — the settings row below truncates long messages
+  };
 
   const [prefs, setPrefs] = useState({
     readReceipts: true,
