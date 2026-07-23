@@ -224,6 +224,15 @@ export function CallProvider({ children }: { children: ReactNode }) {
         const incomingKind: CallKind = incoming.metadata?.kind === "video" ? "video" : "audio";
         pendingCallRef.current = incoming;
         pendingKindRef.current = incomingKind;
+
+        // The person already tapped "Decline" on the call notification
+        // before the app finished opening — honor that instead of ringing.
+        if (window.localStorage.getItem("hoox_pending_decline") === "1") {
+          window.localStorage.removeItem("hoox_pending_decline");
+          declineCall();
+          return;
+        }
+
         setKind(incomingKind);
         setPeerName(incoming.peer.replace(/^cryptvora-/, ""));
         setStatus("ringing");

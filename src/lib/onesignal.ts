@@ -54,6 +54,15 @@ export async function initOneSignal(): Promise<void> {
     lastDebugInfo = `Step 3: calling OneSignal.login() (permission accepted: ${accepted})…`;
     await OneSignal.login(getOrCreateDeviceCode());
     lastDebugInfo = `OK — logged in as ${getOrCreateDeviceCode()}, permission accepted: ${accepted}`;
+    // If someone taps "Decline" on the call notification, remember that so
+    // the app can auto-decline once it opens — there's no native code yet
+    // to fully reject the call without ever opening the app.
+    OneSignal.Notifications.addEventListener("click", (event) => {
+      const actionId = event?.result?.actionId;
+      if (actionId === "decline") {
+        window.localStorage.setItem("hoox_pending_decline", "1");
+      }
+    });
   } catch (err) {
     // Push notifications are a nice-to-have on top of the app, not
     // something that should ever block someone from using the app itself
@@ -118,6 +127,14 @@ export function sendCallPushNotification(toCode: string, fromCode: string, kind:
     data: { type: "incoming_call", from: fromCode, kind },
     priority: 10,
     ttl: 45,
+    // Shows two tappable buttons directly on the Android notification —
+    // both currently just open the app to the ringing screen (there's no
+    // native code yet to answer/decline without opening it), but this
+    // still gives a clear, familiar "this is a call" visual.
+    buttons: [
+      { id: "accept", text: kind === "video" ? "Answer video" : "Answer" },
+      { id: "decline", text: "Decline" },
+    ],
   });
 }
 
