@@ -37,7 +37,7 @@ import { AppearanceScreen } from "./AppearanceScreen";
 import { EditProfileScreen } from "./EditProfileScreen";
 import { AvatarSheet } from "./AvatarSheet";
 import { QRScreen } from "./QRScreen";
-import { initOneSignal, getOneSignalDebugInfo } from "@/lib/onesignal";
+import { initOneSignal, getOneSignalDebugInfo, getLastPushDebugInfo } from "@/lib/onesignal";
 
 type SectionId =
   | "root"
@@ -247,6 +247,12 @@ function SettingsRoutes({ speed }: { speed: number }) {
                   label="Push notification setup (debug)"
                   description={pushDebug || "Tap to check"}
                   onClick={() => void retryPushSetup()}
+                />
+                <SettingItem
+                  icon={Bell}
+                  label="Last call/message push (debug)"
+                  description={getLastPushDebugInfo()}
+                  onClick={() => window.alert(getLastPushDebugInfo())}
                   last
                 />
               </SettingGroup>

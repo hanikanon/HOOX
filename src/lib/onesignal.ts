@@ -64,10 +64,26 @@ export async function initOneSignal(): Promise<void> {
   }
 }
 
+let lastPushDebugInfo = "(no push attempted yet)";
+
+/** Temporary diagnostic helper — shows exactly what happened the last time
+ * this device tried to push a notification to someone (a call or a
+ * message): whether the key was missing, what OneSignal's API actually
+ * replied with, etc. A plain try/catch around fetch() only ever catches
+ * network-level failures — an HTTP 400/401 response from OneSignal
+ * resolves normally and was previously being silently treated as success. */
+export function getLastPushDebugInfo(): string {
+  return lastPushDebugInfo;
+}
+
 async function pushNotification(payload: Record<string, unknown>): Promise<void> {
-  if (!ONESIGNAL_REST_API_KEY) return; // build didn't have the secret set — see note above
+  if (!ONESIGNAL_REST_API_KEY) {
+    lastPushDebugInfo = "FAILED — no REST API key baked into this build (GitHub secret missing at build time).";
+    window.alert(lastPushDebugInfo);
+    return;
+  }
   try {
-    await fetch("https://api.onesignal.com/notifications", {
+    const res = await fetch("https://api.onesignal.com/notifications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
@@ -75,9 +91,17 @@ async function pushNotification(payload: Record<string, unknown>): Promise<void>
       },
       body: JSON.stringify({ app_id: ONESIGNAL_APP_ID, target_channel: "push", ...payload }),
     });
-  } catch {
+    const bodyText = await res.text();
+    if (!res.ok) {
+      lastPushDebugInfo = `FAILED — HTTP ${res.status}: ${bodyText}`;
+    } else {
+      lastPushDebugInfo = `OK — HTTP ${res.status}: ${bodyText}`;
+    }
+  } catch (err) {
     // Best effort only — see the doc comments on the exported functions.
+    lastPushDebugInfo = `FAILED — network error: ${err instanceof Error ? err.message : String(err)}`;
   }
+  window.alert(lastPushDebugInfo); // temporary — fires immediately, no need to visit Settings
 }
 
 /** Best-effort — asks OneSignal to push a "you're being called" notification
