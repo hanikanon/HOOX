@@ -91,26 +91,43 @@ async function pushNotification(payload: Record<string, unknown>): Promise<void>
     window.alert(lastPushDebugInfo);
     return;
   }
-  try {
-    const res = await fetch("https://api.onesignal.com/notifications", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
-      },
-      body: JSON.stringify({ app_id: ONESIGNAL_APP_ID, target_channel: "push", ...payload }),
-    });
-    const bodyText = await res.text();
-    if (!res.ok) {
-      lastPushDebugInfo = `FAILED — HTTP ${res.status}: ${bodyText}`;
-    } else {
-      lastPushDebugInfo = `OK — HTTP ${res.status}: ${bodyText}`;
+
+  // The device is often mid-setup for the call's own network connection at
+  // this exact moment, so a single fetch() can transiently fail ("Failed
+  // to fetch") even though the network is fine a second later. Retry a
+  // couple of times with a short delay before giving up.
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch("https://api.onesignal.com/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          Authorization: `Key ${ONESIGNAL_REST_API_KEY}`,
+        },
+        body: JSON.stringify({ app_id: ONESIGNAL_APP_ID, target_channel: "push", ...payload }),
+      });
+      const bodyText = await res.text();
+      lastPushDebugInfo = res.ok
+        ? `OK (attempt ${attempt}) — HTTP ${res.status}: ${bodyText}`
+        : `FAILED (attempt ${attempt}) — HTTP ${res.status}: ${bodyText}`;
+      if (res.ok) {
+        window.alert(lastPushDebugInfo);
+        return;
+      }
+      // An HTTP error response (not a network failure) won't fix itself by
+      // retrying — e.g. a bad key or malformed request stays bad.
+      window.alert(lastPushDebugInfo);
+      return;
+    } catch (err) {
+      lastPushDebugInfo = `FAILED (attempt ${attempt}/${maxAttempts}) — network error: ${err instanceof Error ? err.message : String(err)}`;
+      if (attempt === maxAttempts) {
+        window.alert(lastPushDebugInfo);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 800 * attempt));
     }
-  } catch (err) {
-    // Best effort only — see the doc comments on the exported functions.
-    lastPushDebugInfo = `FAILED — network error: ${err instanceof Error ? err.message : String(err)}`;
   }
-  window.alert(lastPushDebugInfo); // temporary — fires immediately, no need to visit Settings
 }
 
 /** Best-effort — asks OneSignal to push a "you're being called" notification
