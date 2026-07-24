@@ -94,9 +94,13 @@ async function pushNotification(payload: Record<string, unknown>): Promise<void>
 
   // The device is often mid-setup for the call's own network connection at
   // this exact moment, so a single fetch() can transiently fail ("Failed
-  // to fetch") even though the network is fine a second later. Retry a
-  // couple of times with a short delay before giving up.
-  const maxAttempts = 3;
+  // to fetch") even though the network is fine a second later. Retry
+  // several times with growing delays before giving up — this has been
+  // observed failing repeatedly right when a call starts, on both wifi
+  // and mobile data, which points at the WebView being briefly busy
+  // rather than an actual network/carrier block.
+  const maxAttempts = 6;
+  const delaysMs = [400, 800, 1500, 2500, 4000];
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const res = await fetch("https://api.onesignal.com/notifications", {
@@ -125,7 +129,7 @@ async function pushNotification(payload: Record<string, unknown>): Promise<void>
         window.alert(lastPushDebugInfo);
         return;
       }
-      await new Promise((resolve) => setTimeout(resolve, 800 * attempt));
+      await new Promise((resolve) => setTimeout(resolve, delaysMs[attempt - 1] ?? 4000));
     }
   }
 }
