@@ -45,6 +45,8 @@
     "@tailwindcss/vite": "^4.2.1",
     "@capacitor/android": "^7.4.3",
     "@capacitor/app": "^7.1.0",
+    "@capacitor-community/contacts": "^7.0.1",
+    "@capacitor-firebase/authentication": "^7.3.0",
     "@capacitor/core": "^7.4.3",
     "@onesignal/capacitor-plugin": "^1.1.4",
     "capacitor-incoming-call": "file:./capacitor-incoming-call",

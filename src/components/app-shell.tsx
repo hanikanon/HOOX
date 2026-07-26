@@ -43,6 +43,7 @@ const mobileNav: NavItem[] = [
 
 const secondaryNav: NavItem[] = [
   { to: "/search", label: "Search", icon: Search },
+  { to: "/contacts", label: "Contacts", icon: UserPlus },
   { to: "/notifications", label: "Notifications", icon: Bell, badge: 4 },
   { to: "/memberships", label: "Memberships", icon: Crown },
   { to: "/saved", label: "Saved", icon: Bookmark },

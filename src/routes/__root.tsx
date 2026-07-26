@@ -16,8 +16,8 @@ import { ThemeProvider } from "../hooks/use-theme";
 import { CallProvider } from "../hooks/use-call";
 import { CallOverlay } from "../components/call/CallOverlay";
 import { WelcomeScreen } from "../components/auth/WelcomeScreen";
-import { OtpScreen } from "../components/auth/OtpScreen";
 import { PermissionsScreen } from "../components/auth/PermissionsScreen";
+import { watchAuthState, getUserProfile, ensureUserProfile } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -155,40 +155,50 @@ function RootComponent() {
   // route changes keeps the whole app feeling like one consistent platform.
   const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-  // Mock sign-in gate, entirely local — no real Google account is ever
-  // contacted. "Continue with Google" just shows a fake email + OTP screen
-  // that accepts any 6 digits, then unlocks the real app. Remembered per
-  // device via localStorage so it's a one-time thing, not on every launch.
-  const AUTH_KEY = "cryptvora_mock_verified";
-  const [authStage, setAuthStage] = useState<"welcome" | "otp" | "permissions" | "app">(() => {
-    if (typeof window === "undefined") return "welcome";
-    return window.localStorage.getItem(AUTH_KEY) === "1" ? "app" : "welcome";
-  });
-  const MOCK_EMAIL = "alex.morgan@gmail.com";
+  // Real sign-in gate: a person is "in" once Firebase confirms an actual
+  // Google-verified session (see lib/auth.ts) and has a saved users/{uid}
+  // profile. Firebase persists the session on-device on its own, so
+  // returning users skip straight to "app" without picking Google again.
+  const [authStage, setAuthStage] = useState<"checking" | "welcome" | "permissions" | "app">(
+    "checking",
+  );
+
+  useEffect(() => {
+    const unsubscribe = watchAuthState((user) => {
+      if (!user) {
+        setAuthStage((current) => (current === "app" ? current : "welcome"));
+        return;
+      }
+      getUserProfile(user.uid)
+        .then(async (existing) => {
+          if (existing) {
+            setAuthStage("app");
+            return;
+          }
+          await ensureUserProfile(user);
+          setAuthStage("permissions");
+        })
+        .catch(() => {
+          // Couldn't reach Firestore to check — fall back to the welcome
+          // screen rather than getting stuck on "checking".
+          setAuthStage((current) => (current === "app" ? current : "welcome"));
+        });
+    });
+    return unsubscribe;
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <HeadContent />
       <ThemeProvider>
-        {authStage !== "app" ? (
+        {authStage === "checking" ? (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-background" />
+        ) : authStage !== "app" ? (
           <AnimatePresence mode="wait" initial={false}>
             {authStage === "welcome" ? (
-              <WelcomeScreen key="welcome" onContinue={() => setAuthStage("otp")} />
-            ) : authStage === "otp" ? (
-              <OtpScreen
-                key="otp"
-                email={MOCK_EMAIL}
-                onBack={() => setAuthStage("welcome")}
-                onVerified={() => setAuthStage("permissions")}
-              />
+              <WelcomeScreen key="welcome" />
             ) : (
-              <PermissionsScreen
-                key="permissions"
-                onContinue={() => {
-                  window.localStorage.setItem(AUTH_KEY, "1");
-                  setAuthStage("app");
-                }}
-              />
+              <PermissionsScreen key="permissions" onContinue={() => setAuthStage("app")} />
             )}
           </AnimatePresence>
         ) : (

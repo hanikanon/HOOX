@@ -18,17 +18,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-const auth = getAuth(app);
+export const auth = getAuth(app);
 
 let readyPromise: Promise<void> | null = null;
 
 /** Firestore's security rules require a signed-in request (see
  * firestore.rules) — this is the minimum bar that stops random scripts on
- * the internet from reading/writing the database, even though this app
- * has no real account system yet. Anonymous auth gives each device a
- * stable identity behind the scenes without asking the person to sign
- * up for anything. Awaiting this once before the first read/write is
- * enough — later calls reuse the same session. */
+ * the internet from reading/writing the database. Real users are signed in
+ * with their phone number (see auth.ts) before this ever runs; this
+ * anonymous fallback only matters for code paths that touch Firestore
+ * before that finishes (there shouldn't be any once auth.ts is wired up
+ * everywhere, but it's harmless to keep as a safety net). */
 export function ensureFirebaseReady(): Promise<void> {
   if (!readyPromise) {
     readyPromise = new Promise((resolve, reject) => {

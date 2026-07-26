@@ -33,6 +33,26 @@ jobs:
       - name: Add Android platform (first run only)
         run: test -d android || npx cap add android
 
+      - name: Add Firebase config (google-services.json) for Google Sign-In, if provided
+        run: |
+          if [ -f android-keystore/google-services.json.b64 ]; then
+            base64 -d android-keystore/google-services.json.b64 > android/app/google-services.json
+            echo "HAS_GOOGLE_SERVICES=true" >> "$GITHUB_ENV"
+          else
+            echo "::warning::android-keystore/google-services.json.b64 not found — building without native Google Sign-In. See CALL_FIX_README_AR.md."
+            echo "HAS_GOOGLE_SERVICES=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Apply Google Services Gradle plugin (only when google-services.json is present)
+        if: env.HAS_GOOGLE_SERVICES == 'true'
+        run: |
+          PROJECT_GRADLE=android/build.gradle
+          grep -q 'com.google.gms:google-services' "$PROJECT_GRADLE" || \
+            sed -i "0,/dependencies {/s//dependencies {\n        classpath 'com.google.gms:google-services:4.4.2'/" "$PROJECT_GRADLE"
+          APP_GRADLE=android/app/build.gradle
+          grep -q "com.google.gms.google-services" "$APP_GRADLE" || \
+            echo "apply plugin: 'com.google.gms.google-services'" >> "$APP_GRADLE"
+
       - name: Grant camera/microphone permissions (needed for real voice/video calls)
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
