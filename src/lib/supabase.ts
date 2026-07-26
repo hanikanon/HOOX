@@ -23,5 +23,12 @@ export const supabase = createClient(supabaseUrl ?? "", supabaseAnonKey ?? "", {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,
+    // PKCE, not the (older, less secure) implicit flow — this is what
+    // makes the redirect actually carry a `code` param that
+    // exchangeCodeForSession() can pair with the verifier it stored
+    // locally when signInWithOAuth() ran. Without this, Supabase defaults
+    // to implicit flow, which returns tokens in the URL fragment instead
+    // and leaves exchangeCodeForSession() with nothing to exchange.
+    flowType: "pkce",
   },
 });
