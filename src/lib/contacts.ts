@@ -1,5 +1,4 @@
-import { collection, getDocs, query, where, documentId } from "firebase/firestore";
-import { db } from "./firebase";
+import { supabase } from "./supabase";
 import type { HooxUser } from "./auth";
 
 export interface MatchedContact extends HooxUser {
@@ -9,8 +8,20 @@ export interface MatchedContact extends HooxUser {
   deviceName?: string;
 }
 
-/** Firestore's `in` operator caps out at 30 values per query — chunk the
- * email list and issue one query per chunk. */
+function rowToUser(row: Record<string, unknown>): HooxUser {
+  return {
+    uid: row.uid as string,
+    email: row.email as string,
+    displayName: row.display_name as string,
+    photoURL: (row.photo_url as string) ?? "",
+    avatarSeed: row.avatar_seed as string,
+    createdAt: (row.created_at as string) ?? null,
+  };
+}
+
+/** Postgres' `in` filter has no hard cap like Firestore's, but batching
+ * keeps individual requests small and avoids ever hitting a URL-length
+ * limit if someone has thousands of contacts. */
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -49,18 +60,14 @@ export async function getMatchedContacts(): Promise<MatchedContact[]> {
   const emails = [...deviceNameByEmail.keys()];
   if (emails.length === 0) return [];
 
-  // Single-field `in` queries need no composite index in Firestore.
   const matches: MatchedContact[] = [];
-  const usersRef = collection(db, "users");
-  for (const batch of chunk(emails, 30)) {
-    const snap = await getDocs(query(usersRef, where("email", "in", batch)));
-    snap.forEach((docSnap) => {
-      const data = docSnap.data() as HooxUser;
-      matches.push({
-        ...data,
-        deviceName: deviceNameByEmail.get(data.email),
-      });
-    });
+  for (const batch of chunk(emails, 100)) {
+    const { data, error } = await supabase.from("profiles").select("*").in("email", batch);
+    if (error) throw error;
+    for (const row of data ?? []) {
+      const user = rowToUser(row);
+      matches.push({ ...user, deviceName: deviceNameByEmail.get(user.email) });
+    }
   }
 
   return matches;
@@ -71,11 +78,11 @@ export async function getMatchedContacts(): Promise<MatchedContact[]> {
 // matching by email.
 export async function getUsersByIds(uids: string[]): Promise<HooxUser[]> {
   if (uids.length === 0) return [];
-  const usersRef = collection(db, "users");
   const results: HooxUser[] = [];
-  for (const batch of chunk(uids, 30)) {
-    const snap = await getDocs(query(usersRef, where(documentId(), "in", batch)));
-    snap.forEach((docSnap) => results.push(docSnap.data() as HooxUser));
+  for (const batch of chunk(uids, 100)) {
+    const { data, error } = await supabase.from("profiles").select("*").in("uid", batch);
+    if (error) throw error;
+    for (const row of data ?? []) results.push(rowToUser(row));
   }
   return results;
 }

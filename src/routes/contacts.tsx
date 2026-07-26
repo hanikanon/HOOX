@@ -21,9 +21,9 @@ function ContactsPage() {
     setState("loading");
     setError(null);
     try {
-      const me = getCurrentUser();
+      const me = await getCurrentUser();
       const matched = await getMatchedContacts();
-      setContacts(matched.filter((c) => c.uid !== me?.uid));
+      setContacts(matched.filter((c) => c.uid !== me?.id));
       setState("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't read your contacts.");

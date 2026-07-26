@@ -25,14 +25,6 @@ const config: CapacitorConfig = {
       resize: "body",
       resizeOnFullScreen: true,
     },
-    FirebaseAuthentication: {
-      // Enables Google as a sign-in provider on the native layer. Also
-      // needs: (1) android/app/google-services.json from Firebase Console,
-      // (2) Google enabled under Authentication → Sign-in method, and
-      // (3) your keystore's SHA-1 registered on the Android app in Firebase
-      // Console → Project settings. See CALL_FIX_README_AR.md.
-      providers: ["google.com"],
-    },
   },
 };
 

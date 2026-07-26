@@ -28,36 +28,52 @@ jobs:
       - name: Build web app
         env:
           VITE_ONESIGNAL_REST_API_KEY: ${{ secrets.ONESIGNAL_REST_API_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Add Android platform (first run only)
         run: test -d android || npx cap add android
-
-      - name: Add Firebase config (google-services.json) for Google Sign-In, if provided
-        run: |
-          if [ -f android-keystore/google-services.json.b64 ]; then
-            base64 -d android-keystore/google-services.json.b64 > android/app/google-services.json
-            echo "HAS_GOOGLE_SERVICES=true" >> "$GITHUB_ENV"
-          else
-            echo "::warning::android-keystore/google-services.json.b64 not found — building without native Google Sign-In. See CALL_FIX_README_AR.md."
-            echo "HAS_GOOGLE_SERVICES=false" >> "$GITHUB_ENV"
-          fi
-
-      - name: Apply Google Services Gradle plugin (only when google-services.json is present)
-        if: env.HAS_GOOGLE_SERVICES == 'true'
-        run: |
-          PROJECT_GRADLE=android/build.gradle
-          grep -q 'com.google.gms:google-services' "$PROJECT_GRADLE" || \
-            sed -i "0,/dependencies {/s//dependencies {\n        classpath 'com.google.gms:google-services:4.4.2'/" "$PROJECT_GRADLE"
-          APP_GRADLE=android/app/build.gradle
-          grep -q "com.google.gms.google-services" "$APP_GRADLE" || \
-            echo "apply plugin: 'com.google.gms.google-services'" >> "$APP_GRADLE"
 
       - name: Grant camera/microphone permissions (needed for real voice/video calls)
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST" || \
             sed -i 's#</manifest>#    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n</manifest>#' "$MANIFEST"
+          cat "$MANIFEST"
+
+      - name: Add "hoox://" deep-link scheme (needed for the Google Sign-In redirect back into the app)
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          grep -q 'android:scheme="hoox"' "$MANIFEST" || \
+            python3 - "$MANIFEST" << 'PYEOF'
+          import re, sys
+          path = sys.argv[1]
+          with open(path) as f:
+              content = f.read()
+          intent_filter = (
+              '        <intent-filter>\n'
+              '            <action android:name="android.intent.action.VIEW" />\n'
+              '            <category android:name="android.intent.category.DEFAULT" />\n'
+              '            <category android:name="android.intent.category.BROWSABLE" />\n'
+              '            <data android:scheme="hoox" android:host="login-callback" />\n'
+              '        </intent-filter>\n'
+              '    </activity>'
+          )
+          # Insert just before the closing </activity> of the MAIN launcher activity
+          # (the one with the MAIN/LAUNCHER intent-filter), leaving any other
+          # <activity> blocks (e.g. the native incoming-call screen) untouched.
+          pattern = re.compile(
+              r'(<activity[^>]*>(?:(?!</activity>).)*?android\.intent\.action\.MAIN(?:(?!</activity>).)*?)</activity>',
+              re.DOTALL,
+          )
+          new_content, count = pattern.subn(lambda m: m.group(1) + intent_filter, content, count=1)
+          if count == 0:
+              print("::warning::Couldn't find the MAIN activity to attach the hoox:// deep link to — Google Sign-In redirect won't work.")
+          else:
+              with open(path, "w") as f:
+                  f.write(new_content)
+          PYEOF
           cat "$MANIFEST"
 
       - name: Generate app icon from resources/icon.png

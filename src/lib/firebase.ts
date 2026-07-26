@@ -24,11 +24,12 @@ let readyPromise: Promise<void> | null = null;
 
 /** Firestore's security rules require a signed-in request (see
  * firestore.rules) — this is the minimum bar that stops random scripts on
- * the internet from reading/writing the database. Real users are signed in
- * with their phone number (see auth.ts) before this ever runs; this
- * anonymous fallback only matters for code paths that touch Firestore
- * before that finishes (there shouldn't be any once auth.ts is wired up
- * everywhere, but it's harmless to keep as a safety net). */
+ * the internet from reading/writing the database. This project's calling
+ * feature (use-call.tsx) is the only thing still using Firebase/Firestore
+ * — accounts, sign-in, and contacts moved to Supabase (see lib/auth.ts,
+ * lib/supabase.ts). This anonymous sign-in just gives each device on a
+ * call a stable identity for Firestore's rules without needing it to also
+ * be signed into Supabase. */
 export function ensureFirebaseReady(): Promise<void> {
   if (!readyPromise) {
     readyPromise = new Promise((resolve, reject) => {

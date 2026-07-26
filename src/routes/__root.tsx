@@ -17,7 +17,7 @@ import { CallProvider } from "../hooks/use-call";
 import { CallOverlay } from "../components/call/CallOverlay";
 import { WelcomeScreen } from "../components/auth/WelcomeScreen";
 import { PermissionsScreen } from "../components/auth/PermissionsScreen";
-import { watchAuthState, getUserProfile, ensureUserProfile } from "../lib/auth";
+import { watchAuthState, getUserProfile, ensureUserProfile, completeSignIn } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -155,10 +155,10 @@ function RootComponent() {
   // route changes keeps the whole app feeling like one consistent platform.
   const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-  // Real sign-in gate: a person is "in" once Firebase confirms an actual
-  // Google-verified session (see lib/auth.ts) and has a saved users/{uid}
-  // profile. Firebase persists the session on-device on its own, so
-  // returning users skip straight to "app" without picking Google again.
+  // Real sign-in gate: a person is "in" once Supabase confirms an actual
+  // Google-verified session (see lib/auth.ts) and has a saved `profiles`
+  // row. Supabase persists the session on-device on its own, so returning
+  // users skip straight to "app" without picking Google again.
   const [authStage, setAuthStage] = useState<"checking" | "welcome" | "permissions" | "app">(
     "checking",
   );
@@ -169,7 +169,7 @@ function RootComponent() {
         setAuthStage((current) => (current === "app" ? current : "welcome"));
         return;
       }
-      getUserProfile(user.uid)
+      getUserProfile(user.id)
         .then(async (existing) => {
           if (existing) {
             setAuthStage("app");
@@ -179,12 +179,35 @@ function RootComponent() {
           setAuthStage("permissions");
         })
         .catch(() => {
-          // Couldn't reach Firestore to check — fall back to the welcome
+          // Couldn't reach Supabase to check — fall back to the welcome
           // screen rather than getting stuck on "checking".
           setAuthStage((current) => (current === "app" ? current : "welcome"));
         });
     });
     return unsubscribe;
+  }, []);
+
+  // Catches the "hoox://login-callback" redirect once the person finishes
+  // the Google consent screen in the system browser (see
+  // lib/auth.ts:signInWithGoogle) and hands the URL off to Supabase to
+  // finish signing them in. The watchAuthState effect above then picks up
+  // the resulting session on its own.
+  useEffect(() => {
+    let removeListener: { remove: () => void } | undefined;
+    import("@capacitor/app").then(({ App }) => {
+      App.addListener("appUrlOpen", ({ url }) => {
+        if (url.startsWith("hoox://login-callback")) {
+          completeSignIn(url).catch(() => {
+            // Nothing to do here beyond leaving them on the welcome screen —
+            // signInWithGoogle()'s own promise already rejects with a
+            // user-facing message.
+          });
+        }
+      }).then((handle) => {
+        removeListener = handle;
+      });
+    });
+    return () => removeListener?.remove();
   }, []);
 
   return (
