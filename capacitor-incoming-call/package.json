@@ -1,0 +1,23 @@
+{
+  "name": "capacitor-incoming-call",
+  "version": "0.1.0",
+  "description": "Native full-screen incoming-call UI for Hoox. Shows a real ringing screen over the lock screen and answers/declines calls even when the app is fully closed, by intercepting the OneSignal push before it's displayed.",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "android",
+    "dist",
+    "src",
+    "CryptvoraIncomingCall.podspec"
+  ],
+  "capacitor": {
+    "android": {
+      "src": "android"
+    }
+  },
+  "peerDependencies": {
+    "@capacitor/core": "^7.0.0"
+  }
+}

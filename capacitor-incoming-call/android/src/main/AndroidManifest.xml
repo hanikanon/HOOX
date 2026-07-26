@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Lets the incoming-call notification launch IncomingCallActivity on
+         its own (over the lock screen / on top of whatever app is open)
+         instead of just sitting in the notification shade. Android
+         auto-grants this to apps that declare real calling functionality;
+         on some OEMs / Android 14+ it may still need a one-time manual
+         toggle under Settings > Apps > Hoox > Full screen notifications. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application>
+        <!-- Tells the OneSignal Android SDK to run our class for every push
+             it receives — including while the app is fully closed — before
+             deciding what (if anything) to show. See
+             IncomingCallNotificationServiceExtension.kt. -->
+        <meta-data
+            android:name="com.onesignal.NotificationServiceExtension"
+            android:value="com.cryptvora.incomingcall.IncomingCallNotificationServiceExtension" />
+
+        <activity
+            android:name="com.cryptvora.incomingcall.IncomingCallActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity=""
+            android:theme="@style/Theme.IncomingCall" />
+
+        <receiver
+            android:name="com.cryptvora.incomingcall.CallActionReceiver"
+            android:exported="false" />
+    </application>
+</manifest>

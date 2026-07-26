@@ -54,9 +54,11 @@ export async function initOneSignal(): Promise<void> {
     lastDebugInfo = `Step 3: calling OneSignal.login() (permission accepted: ${accepted})…`;
     await OneSignal.login(getOrCreateDeviceCode());
     lastDebugInfo = `OK — logged in as ${getOrCreateDeviceCode()}, permission accepted: ${accepted}`;
-    // If someone taps "Decline" on the call notification, remember that so
-    // the app can auto-decline once it opens — there's no native code yet
-    // to fully reject the call without ever opening the app.
+    // Only relevant for plain "message" pushes now — "incoming_call" pushes
+    // are intercepted natively before OneSignal ever displays or fires a
+    // click event for them (see capacitor-incoming-call's
+    // IncomingCallNotificationServiceExtension). Kept here as a fallback in
+    // case that extension isn't installed in a given build.
     OneSignal.Notifications.addEventListener("click", (event) => {
       const actionId = event?.result?.actionId;
       if (actionId === "decline") {

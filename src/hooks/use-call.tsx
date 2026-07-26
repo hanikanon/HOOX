@@ -225,8 +225,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
         pendingCallRef.current = incoming;
         pendingKindRef.current = incomingKind;
 
-        // The person already tapped "Decline" on the call notification
-        // before the app finished opening — honor that instead of ringing.
+        // The person already tapped "Decline" on the native call screen or
+        // notification before the app finished opening — honor that instead
+        // of ringing.
         if (window.localStorage.getItem("hoox_pending_decline") === "1") {
           window.localStorage.removeItem("hoox_pending_decline");
           declineCall();
@@ -236,6 +237,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
         setKind(incomingKind);
         setPeerName(incoming.peer.replace(/^cryptvora-/, ""));
         setStatus("ringing");
+
+        // Likewise, if they already tapped "Answer" on the native call
+        // screen or notification, pick up immediately instead of waiting
+        // for another tap on the in-app ringing UI.
+        if (window.localStorage.getItem("hoox_pending_answer") === "1") {
+          window.localStorage.removeItem("hoox_pending_answer");
+          answerCall();
+        }
       });
 
       // The caller also opens a small control channel alongside the media
@@ -249,12 +258,39 @@ export function CallProvider({ children }: { children: ReactNode }) {
       });
     });
 
+    // Bridge to the native full-screen incoming-call UI (see the
+    // capacitor-incoming-call plugin) — lets someone answer/decline a call
+    // from the OS-level ringing screen or notification, including while the
+    // app was fully closed when it happened. It works by setting the same
+    // "pending" localStorage flags the OneSignal click handler already uses
+    // above, which peer.on("call") checks the moment the real call arrives.
+    let removeNativeListener: { remove: () => void } | undefined;
+    function handleNativeCallAction(data: { action?: string } | null | undefined) {
+      if (!data?.action || data.action === "wake") return;
+      if (data.action === "answer") {
+        window.localStorage.setItem("hoox_pending_answer", "1");
+      } else if (data.action === "decline") {
+        window.localStorage.setItem("hoox_pending_decline", "1");
+      }
+    }
+    import("capacitor-incoming-call")
+      .then(async ({ default: IncomingCall }) => {
+        if (cancelled) return;
+        removeNativeListener = await IncomingCall.addListener("callAction", handleNativeCallAction);
+        const pending = await IncomingCall.checkPendingAction();
+        handleNativeCallAction(pending);
+      })
+      .catch(() => {
+        // Not running as a native app (plain browser tab) — nothing to bridge.
+      });
+
     return () => {
       cancelled = true;
       if (visibilityHandlerRef.current) {
         document.removeEventListener("visibilitychange", visibilityHandlerRef.current);
         window.removeEventListener("focus", visibilityHandlerRef.current);
       }
+      removeNativeListener?.remove();
       peerRef.current?.destroy();
       peerRef.current = null;
     };
