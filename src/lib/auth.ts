@@ -123,6 +123,17 @@ export async function getUserProfile(uid: string): Promise<HooxUser | null> {
   };
 }
 
+/** Lets the signed-in person change the name their contacts and search
+ * results show for them (see lib/search.ts, hooks/use-matched-contacts.ts)
+ * — this is what they land on Search with by default from their Google
+ * account, but it's editable rather than fixed. */
+export async function updateDisplayName(uid: string, name: string): Promise<void> {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Name can't be empty.");
+  const { error } = await supabase.from("profiles").update({ display_name: trimmed }).eq("uid", uid);
+  if (error) throw error;
+}
+
 /** Fires on every Supabase auth-state change — this is what __root.tsx
  * uses to move between the sign-in screen and the app. */
 export function watchAuthState(cb: (user: User | null) => void): () => void {
