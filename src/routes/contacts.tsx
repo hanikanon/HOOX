@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Users, RefreshCw, ShieldAlert } from "lucide-react";
+import { Users, RefreshCw, ShieldAlert, MessageCircle } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { getMatchedContacts, type MatchedContact } from "@/lib/contacts";
 import { getCurrentUser } from "@/lib/auth";
@@ -78,22 +78,39 @@ function ContactsPage() {
 
       {state === "done" && contacts.length > 0 && (
         <ul className="space-y-1">
-          {contacts.map((c) => (
-            <li
-              key={c.uid}
-              className="flex items-center gap-3 rounded-2xl px-3 py-2.5 hover:bg-white/5"
-            >
-              <Avatar seed={c.avatarSeed} name={c.displayName} size={44} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[15px] font-medium text-white">{c.displayName}</p>
-                <p className="truncate text-[13px] text-gray-500">
-                  {c.deviceName && c.deviceName !== c.displayName
-                    ? `${c.deviceName} · ${c.email}`
-                    : c.email}
-                </p>
+          {contacts.map((c) => {
+            const row = (
+              <>
+                <Avatar seed={c.avatarSeed} name={c.displayName} size={44} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-medium text-white">{c.displayName}</p>
+                  <p className="truncate text-[13px] text-gray-500">
+                    {c.deviceName && c.deviceName !== c.displayName
+                      ? `${c.deviceName} · ${c.email}`
+                      : c.email}
+                  </p>
+                </div>
+                {c.deviceCode && <MessageCircle className="h-5 w-5 shrink-0 text-primary" />}
+              </>
+            );
+            // Contacts who signed up before device_code existed on their
+            // profile (or who haven't opened the app since) won't have one
+            // yet — show them, but there's nothing to link to until they do.
+            return c.deviceCode ? (
+              <Link
+                key={c.uid}
+                to="/dm/$code"
+                params={{ code: c.deviceCode }}
+                className="flex items-center gap-3 rounded-2xl px-3 py-2.5 hover:bg-white/5"
+              >
+                {row}
+              </Link>
+            ) : (
+              <div key={c.uid} className="flex items-center gap-3 rounded-2xl px-3 py-2.5 opacity-60">
+                {row}
               </div>
-            </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>

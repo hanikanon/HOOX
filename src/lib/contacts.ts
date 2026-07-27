@@ -15,6 +15,7 @@ function rowToUser(row: Record<string, unknown>): HooxUser {
     displayName: row.display_name as string,
     photoURL: (row.photo_url as string) ?? "",
     avatarSeed: row.avatar_seed as string,
+    deviceCode: (row.device_code as string) ?? null,
     createdAt: (row.created_at as string) ?? null,
   };
 }

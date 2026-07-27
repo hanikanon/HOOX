@@ -7,8 +7,18 @@ create table if not exists public.profiles (
   display_name text not null,
   photo_url text default '',
   avatar_seed text not null,
+  -- The same 6-character code the existing calling/messaging features
+  -- already use (see lib/device-code.ts) — storing it here is what lets a
+  -- real contact match (by email) turn into an actual reachable chat/call,
+  -- instead of the person having to type or scan someone's code manually.
+  device_code text,
   created_at timestamptz not null default now()
 );
+
+-- Migration for anyone who already ran an earlier version of this file
+-- (device_code didn't exist yet) — safe to re-run, does nothing if the
+-- column is already there.
+alter table public.profiles add column if not exists device_code text;
 
 -- One profile per email too, so contact-matching by email always resolves
 -- to a single person.

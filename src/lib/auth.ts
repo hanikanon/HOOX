@@ -7,6 +7,11 @@ export interface HooxUser {
   displayName: string;
   photoURL: string;
   avatarSeed: string;
+  /** The same code lib/device-code.ts generates for this device — this is
+   * what actually makes a matched contact reachable for a real chat/call
+   * (see lib/messaging.ts, routes/dm.$code.tsx) instead of just being a
+   * name in a list. */
+  deviceCode: string | null;
   createdAt: string | null;
 }
 
@@ -85,6 +90,7 @@ export async function ensureUserProfile(user: User): Promise<HooxUser> {
   const existing = await getUserProfile(user.id);
   if (existing) return existing;
 
+  const { getOrCreateDeviceCode } = await import("./device-code");
   const email = (user.email ?? "").toLowerCase();
   const meta = user.user_metadata ?? {};
   const profile = {
@@ -93,6 +99,7 @@ export async function ensureUserProfile(user: User): Promise<HooxUser> {
     display_name: (meta.full_name as string) || (meta.name as string) || email.split("@")[0] || "Hoox user",
     photo_url: (meta.avatar_url as string) || (meta.picture as string) || "",
     avatar_seed: user.id.slice(0, 12),
+    device_code: getOrCreateDeviceCode(),
   };
   const { error } = await supabase.from("profiles").insert(profile);
   if (error) throw error;
@@ -111,6 +118,7 @@ export async function getUserProfile(uid: string): Promise<HooxUser | null> {
     displayName: data.display_name,
     photoURL: data.photo_url ?? "",
     avatarSeed: data.avatar_seed,
+    deviceCode: data.device_code ?? null,
     createdAt: data.created_at ?? null,
   };
 }

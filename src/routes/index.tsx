@@ -25,9 +25,6 @@ function ChatsIndex() {
         <div className="hidden items-center justify-between border-b border-border px-5 py-4 lg:flex">
           <div>
             <h1 className="text-lg font-semibold tracking-tight">Chats</h1>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              14 unread · 3 mentions
-            </p>
           </div>
           <button className="grid size-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_-10px_color-mix(in_oklab,var(--primary)_70%,transparent)] hover:bg-primary/90">
             <MessageSquareText className="size-[16px]" />
