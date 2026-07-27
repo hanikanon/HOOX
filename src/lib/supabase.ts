@@ -23,12 +23,16 @@ export const supabase = createClient(supabaseUrl ?? "", supabaseAnonKey ?? "", {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,
-    // PKCE, not the (older, less secure) implicit flow — this is what
-    // makes the redirect actually carry a `code` param that
-    // exchangeCodeForSession() can pair with the verifier it stored
-    // locally when signInWithOAuth() ran. Without this, Supabase defaults
-    // to implicit flow, which returns tokens in the URL fragment instead
-    // and leaves exchangeCodeForSession() with nothing to exchange.
-    flowType: "pkce",
+    // Deliberately implicit, not PKCE: PKCE needs its code_verifier to
+    // still be in this WebView's localStorage when the redirect comes
+    // back — but the OAuth screen opens in an external browser (a
+    // separate app/task), and Android is free to kill our app's process
+    // while the person is over there. When that happens the verifier is
+    // gone before exchangeCodeForSession() ever runs ("invalid flow
+    // state"). Implicit flow sidesteps this entirely: the tokens come
+    // back directly in the redirect URL's fragment (see
+    // completeSignIn() in auth.ts), so there's nothing that needs to have
+    // survived in storage.
+    flowType: "implicit",
   },
 });

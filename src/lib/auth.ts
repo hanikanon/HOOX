@@ -55,7 +55,20 @@ export async function completeSignIn(url: string): Promise<void> {
   try {
     const { Browser } = await import("@capacitor/browser");
     await Browser.close().catch(() => {});
-    const { data, error } = await supabase.auth.exchangeCodeForSession(url);
+
+    // Implicit flow puts the session directly in the URL's fragment:
+    // hoox://login-callback#access_token=...&refresh_token=...
+    const hashIndex = url.indexOf("#");
+    const params = new URLSearchParams(hashIndex >= 0 ? url.slice(hashIndex + 1) : "");
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
+    const errorDescription = params.get("error_description");
+    if (errorDescription) throw new Error(errorDescription);
+    if (!access_token || !refresh_token) {
+      throw new Error("Sign-in didn't return a valid session — try again.");
+    }
+
+    const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
     if (error || !data.session) throw error ?? new Error("Sign-in didn't complete.");
     pendingSignIn?.resolve(data.session);
   } catch (err) {
