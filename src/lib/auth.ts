@@ -123,6 +123,26 @@ export async function getUserProfile(uid: string): Promise<HooxUser | null> {
   };
 }
 
+/** Fills in a missing call/chat code on an existing profile — needed for
+ * accounts created before this field existed on the profiles table (they
+ * signed up, got a row, but device_code was never set). Without this,
+ * those people show up in search/contacts but aren't reachable at all
+ * (no code to open a chat/call with). Safe and cheap to call on every
+ * app launch: a no-op once the code is already there. */
+export async function ensureDeviceCode(profile: HooxUser): Promise<HooxUser> {
+  if (profile.deviceCode) return profile;
+
+  const { getOrCreateDeviceCode } = await import("./device-code");
+  const deviceCode = getOrCreateDeviceCode();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ device_code: deviceCode })
+    .eq("uid", profile.uid);
+  if (error) throw error;
+
+  return { ...profile, deviceCode };
+}
+
 /** Lets the signed-in person change the name their contacts and search
  * results show for them (see lib/search.ts, hooks/use-matched-contacts.ts)
  * — this is what they land on Search with by default from their Google

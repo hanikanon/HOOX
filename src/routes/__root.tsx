@@ -17,7 +17,7 @@ import { CallProvider } from "../hooks/use-call";
 import { CallOverlay } from "../components/call/CallOverlay";
 import { WelcomeScreen } from "../components/auth/WelcomeScreen";
 import { PermissionsScreen } from "../components/auth/PermissionsScreen";
-import { watchAuthState, getUserProfile, ensureUserProfile, completeSignIn } from "../lib/auth";
+import { watchAuthState, getUserProfile, ensureUserProfile, ensureDeviceCode, completeSignIn } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -172,6 +172,10 @@ function RootComponent() {
       getUserProfile(user.id)
         .then(async (existing) => {
           if (existing) {
+            await ensureDeviceCode(existing).catch(() => {
+              // Not fatal — they just won't be reachable for chat/calls
+              // until this succeeds on a later launch.
+            });
             setAuthStage("app");
             return;
           }
