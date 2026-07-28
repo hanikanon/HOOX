@@ -86,6 +86,16 @@ export async function completeSignIn(url: string): Promise<void> {
 /** Creates the person's `profiles` row the first time they sign in, or
  * just returns it if it already exists. This is the row other people's
  * devices look up (by email) to find them as a contact. */
+/** Google's account name can carry invisible Unicode formatting
+ * characters (bidi marks like U+200E/U+200F, isolates like U+2066–U+2069,
+ * zero-width characters, etc.) — especially common on accounts with an
+ * Arabic/RTL locale. They render as nothing, so the name still *looks*
+ * like "Maamar", but they silently break substring search (ilike '%Maamar%'
+ * won't match text that has an invisible character hiding inside it). */
+function sanitizeName(name: string): string {
+  return name.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g, "").trim();
+}
+
 export async function ensureUserProfile(user: User): Promise<HooxUser> {
   const existing = await getUserProfile(user.id);
   if (existing) return existing;
@@ -96,7 +106,7 @@ export async function ensureUserProfile(user: User): Promise<HooxUser> {
   const profile = {
     uid: user.id,
     email,
-    display_name: (meta.full_name as string) || (meta.name as string) || email.split("@")[0] || "Hoox user",
+    display_name: sanitizeName((meta.full_name as string) || (meta.name as string) || email.split("@")[0] || "Hoox user"),
     photo_url: (meta.avatar_url as string) || (meta.picture as string) || "",
     avatar_seed: user.id.slice(0, 12),
     device_code: getOrCreateDeviceCode(),
@@ -148,7 +158,7 @@ export async function ensureDeviceCode(profile: HooxUser): Promise<HooxUser> {
  * — this is what they land on Search with by default from their Google
  * account, but it's editable rather than fixed. */
 export async function updateDisplayName(uid: string, name: string): Promise<void> {
-  const trimmed = name.trim();
+  const trimmed = sanitizeName(name);
   if (!trimmed) throw new Error("Name can't be empty.");
   const { error } = await supabase.from("profiles").update({ display_name: trimmed }).eq("uid", uid);
   if (error) throw error;
