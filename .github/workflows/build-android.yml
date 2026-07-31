@@ -28,8 +28,6 @@ jobs:
       - name: Build web app
         env:
           VITE_ONESIGNAL_REST_API_KEY: ${{ secrets.ONESIGNAL_REST_API_KEY }}
-          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Add Android platform (first run only)
@@ -39,41 +37,7 @@ jobs:
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           grep -q 'android.permission.RECORD_AUDIO' "$MANIFEST" || \
-            sed -i 's#</manifest>#    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <uses-permission android:name="android.permission.READ_CONTACTS" />\n    <uses-permission android:name="android.permission.WRITE_CONTACTS" />\n</manifest>#' "$MANIFEST"
-          cat "$MANIFEST"
-
-      - name: Add "hoox://" deep-link scheme (needed for the Google Sign-In redirect back into the app)
-        run: |
-          MANIFEST=android/app/src/main/AndroidManifest.xml
-          grep -q 'android:scheme="hoox"' "$MANIFEST" || \
-            python3 - "$MANIFEST" << 'PYEOF'
-          import re, sys
-          path = sys.argv[1]
-          with open(path) as f:
-              content = f.read()
-          intent_filter = (
-              '        <intent-filter>\n'
-              '            <action android:name="android.intent.action.VIEW" />\n'
-              '            <category android:name="android.intent.category.DEFAULT" />\n'
-              '            <category android:name="android.intent.category.BROWSABLE" />\n'
-              '            <data android:scheme="hoox" android:host="login-callback" />\n'
-              '        </intent-filter>\n'
-              '    </activity>'
-          )
-          # Insert just before the closing </activity> of the MAIN launcher activity
-          # (the one with the MAIN/LAUNCHER intent-filter), leaving any other
-          # <activity> blocks (e.g. the native incoming-call screen) untouched.
-          pattern = re.compile(
-              r'(<activity[^>]*>(?:(?!</activity>).)*?android\.intent\.action\.MAIN(?:(?!</activity>).)*?)</activity>',
-              re.DOTALL,
-          )
-          new_content, count = pattern.subn(lambda m: m.group(1) + intent_filter, content, count=1)
-          if count == 0:
-              print("::warning::Couldn't find the MAIN activity to attach the hoox:// deep link to — Google Sign-In redirect won't work.")
-          else:
-              with open(path, "w") as f:
-                  f.write(new_content)
-          PYEOF
+            sed -i 's#</manifest>#    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n</manifest>#' "$MANIFEST"
           cat "$MANIFEST"
 
       - name: Generate app icon from resources/icon.png

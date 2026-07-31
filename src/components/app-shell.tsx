@@ -43,7 +43,6 @@ const mobileNav: NavItem[] = [
 
 const secondaryNav: NavItem[] = [
   { to: "/search", label: "Search", icon: Search },
-  { to: "/contacts", label: "Contacts", icon: UserPlus },
   { to: "/notifications", label: "Notifications", icon: Bell, badge: 4 },
   { to: "/memberships", label: "Memberships", icon: Crown },
   { to: "/saved", label: "Saved", icon: Bookmark },
@@ -257,9 +256,8 @@ function MobileTopBar() {
 
 function MobileBottomNav() {
   const current = useActivePath();
-  // Hide on mobile inside a real conversation thread — otherwise the
-  // floating compose button sits on top of the message input.
-  if (current.startsWith("/dm/") || current.startsWith("/chat/")) return null;
+  // Hide on mobile inside a conversation
+  if (current.startsWith("/chat/")) return null;
 
   return <ComposeFab />;
 }

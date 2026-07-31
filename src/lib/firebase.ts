@@ -18,18 +18,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
-export const auth = getAuth(app);
+const auth = getAuth(app);
 
 let readyPromise: Promise<void> | null = null;
 
 /** Firestore's security rules require a signed-in request (see
  * firestore.rules) — this is the minimum bar that stops random scripts on
- * the internet from reading/writing the database. This project's calling
- * feature (use-call.tsx) is the only thing still using Firebase/Firestore
- * — accounts, sign-in, and contacts moved to Supabase (see lib/auth.ts,
- * lib/supabase.ts). This anonymous sign-in just gives each device on a
- * call a stable identity for Firestore's rules without needing it to also
- * be signed into Supabase. */
+ * the internet from reading/writing the database, even though this app
+ * has no real account system yet. Anonymous auth gives each device a
+ * stable identity behind the scenes without asking the person to sign
+ * up for anything. Awaiting this once before the first read/write is
+ * enough — later calls reuse the same session. */
 export function ensureFirebaseReady(): Promise<void> {
   if (!readyPromise) {
     readyPromise = new Promise((resolve, reject) => {

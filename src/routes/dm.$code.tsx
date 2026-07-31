@@ -33,21 +33,16 @@ function DirectMessageScreen() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  const [error, setError] = useState<string | null>(null);
-
   const handleSend = async () => {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
-    setError(null);
+    setText("");
     setSending(true);
     try {
       await sendDirectMessage(code, trimmed);
-      setText("");
-    } catch (err) {
-      // Keep the draft in the box and say what happened instead of
-      // silently losing the message — this is exactly the kind of
-      // failure (permissions, offline, etc.) someone needs to see.
-      setError(err instanceof Error ? err.message : "Couldn't send — check your connection and try again.");
+    } catch {
+      // Leave it simple for now — the person can just try sending again.
+      // A future pass could restore the draft text and show a retry hint.
     } finally {
       setSending(false);
     }
@@ -91,11 +86,6 @@ function DirectMessageScreen() {
         <div ref={bottomRef} />
       </div>
 
-      {error && (
-        <div className="border-t border-red-500/20 bg-red-500/5 px-4 py-2 text-center text-xs text-red-300">
-          {error}
-        </div>
-      )}
       <div className="flex items-center gap-2 border-t border-border px-3 py-2.5">
         <input
           value={text}

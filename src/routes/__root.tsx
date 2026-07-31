@@ -16,8 +16,8 @@ import { ThemeProvider } from "../hooks/use-theme";
 import { CallProvider } from "../hooks/use-call";
 import { CallOverlay } from "../components/call/CallOverlay";
 import { WelcomeScreen } from "../components/auth/WelcomeScreen";
+import { OtpScreen } from "../components/auth/OtpScreen";
 import { PermissionsScreen } from "../components/auth/PermissionsScreen";
-import { watchAuthState, getUserProfile, ensureUserProfile, ensureDeviceCode, completeSignIn } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -155,77 +155,40 @@ function RootComponent() {
   // route changes keeps the whole app feeling like one consistent platform.
   const EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-  // Real sign-in gate: a person is "in" once Supabase confirms an actual
-  // Google-verified session (see lib/auth.ts) and has a saved `profiles`
-  // row. Supabase persists the session on-device on its own, so returning
-  // users skip straight to "app" without picking Google again.
-  const [authStage, setAuthStage] = useState<"checking" | "welcome" | "permissions" | "app">(
-    "checking",
-  );
-
-  useEffect(() => {
-    const unsubscribe = watchAuthState((user) => {
-      if (!user) {
-        setAuthStage((current) => (current === "app" ? current : "welcome"));
-        return;
-      }
-      getUserProfile(user.id)
-        .then(async (existing) => {
-          if (existing) {
-            await ensureDeviceCode(existing).catch(() => {
-              // Not fatal — they just won't be reachable for chat/calls
-              // until this succeeds on a later launch.
-            });
-            setAuthStage("app");
-            return;
-          }
-          await ensureUserProfile(user);
-          setAuthStage("permissions");
-        })
-        .catch(() => {
-          // Couldn't reach Supabase to check — fall back to the welcome
-          // screen rather than getting stuck on "checking".
-          setAuthStage((current) => (current === "app" ? current : "welcome"));
-        });
-    });
-    return unsubscribe;
-  }, []);
-
-  // Catches the "hoox://login-callback" redirect once the person finishes
-  // the Google consent screen in the system browser (see
-  // lib/auth.ts:signInWithGoogle) and hands the URL off to Supabase to
-  // finish signing them in. The watchAuthState effect above then picks up
-  // the resulting session on its own.
-  useEffect(() => {
-    let removeListener: { remove: () => void } | undefined;
-    import("@capacitor/app").then(({ App }) => {
-      App.addListener("appUrlOpen", ({ url }) => {
-        if (url.startsWith("hoox://login-callback")) {
-          completeSignIn(url).catch(() => {
-            // Nothing to do here beyond leaving them on the welcome screen —
-            // signInWithGoogle()'s own promise already rejects with a
-            // user-facing message.
-          });
-        }
-      }).then((handle) => {
-        removeListener = handle;
-      });
-    });
-    return () => removeListener?.remove();
-  }, []);
+  // Mock sign-in gate, entirely local — no real Google account is ever
+  // contacted. "Continue with Google" just shows a fake email + OTP screen
+  // that accepts any 6 digits, then unlocks the real app. Remembered per
+  // device via localStorage so it's a one-time thing, not on every launch.
+  const AUTH_KEY = "cryptvora_mock_verified";
+  const [authStage, setAuthStage] = useState<"welcome" | "otp" | "permissions" | "app">(() => {
+    if (typeof window === "undefined") return "welcome";
+    return window.localStorage.getItem(AUTH_KEY) === "1" ? "app" : "welcome";
+  });
+  const MOCK_EMAIL = "alex.morgan@gmail.com";
 
   return (
     <QueryClientProvider client={queryClient}>
       <HeadContent />
       <ThemeProvider>
-        {authStage === "checking" ? (
-          <div className="fixed inset-0 z-40 flex items-center justify-center bg-background" />
-        ) : authStage !== "app" ? (
+        {authStage !== "app" ? (
           <AnimatePresence mode="wait" initial={false}>
             {authStage === "welcome" ? (
-              <WelcomeScreen key="welcome" />
+              <WelcomeScreen key="welcome" onContinue={() => setAuthStage("otp")} />
+            ) : authStage === "otp" ? (
+              <OtpScreen
+                key="otp"
+                email={MOCK_EMAIL}
+                onBack={() => setAuthStage("welcome")}
+                onVerified={() => setAuthStage("permissions")}
+              />
             ) : (
-              <PermissionsScreen key="permissions" onContinue={() => setAuthStage("app")} />
+              <PermissionsScreen
+                key="permissions"
+                onContinue={() => {
+                  window.localStorage.setItem(AUTH_KEY, "1");
+                  setAuthStage("app");
+                }}
+              />
             )}
           </AnimatePresence>
         ) : (

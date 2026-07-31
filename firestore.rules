@@ -11,9 +11,6 @@ rules_version = '2';
 // the existing calling feature's security model (see chat history).
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Accounts/profiles live in Supabase now (see lib/auth.ts,
-    // supabase/schema.sql) — Firestore here is only for the calling
-    // feature's message signaling below.
     match /conversations/{conversationId}/messages/{messageId} {
       allow read: if request.auth != null
         && conversationId.matches('^[A-Z2-9]{6}_[A-Z2-9]{6}$');
